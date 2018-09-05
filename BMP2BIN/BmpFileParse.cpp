@@ -50,7 +50,7 @@ int BmpFileParse::loadBitmap(char *path)
 	int nErr = fopen_s(&bmfp, path,"rb");
     if (bmfp == NULL || nErr != 0)
     {
-        cerr<<"open"<<path <<"error!\n";
+        cerr<<"open "<<path <<" fail!\n";
         return ERR_FILE_OPEN_FAIL;
     }
 
