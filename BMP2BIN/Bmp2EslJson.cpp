@@ -15,6 +15,7 @@ using namespace std;
 #define ERR_ESL_NOT_SUPPORT 34
 #define ERR_OPEN_WRITE_FILE 35
 #define ERR_INTPUT_PARA_INVALID 36
+#define ERR_FILE_TYPE_NOT_SUPPORT 37
 
 
 #define MAX_FILE_NAME_LEN 100
@@ -52,8 +53,15 @@ int main(int argc, char* argv[])
 
 	if (argc == 1)
 	{
-		cout<<"Input BIN format picture file name:";
+		cout<<"Input *.bmp format picture file name:";
 		cin>>bmpFileName;
+
+		if (NULL == strstr(bmpFileName, "bmp")
+			&& NULL == strstr(bmpFileName, "BMP"))
+		{
+			cerr<<"Not supported picture file type"<<endl;
+			return ERR_FILE_TYPE_NOT_SUPPORT;
+		}
 
 		cout<<"Please esl type(esl29, esl42):";
 		cin>>cEslType;
@@ -181,6 +189,13 @@ int main(int argc, char* argv[])
 			}
 			else if (strcmp(argv[i], "-f") == 0)
 			{
+				if (NULL == strstr(argv[i+1], "bmp")
+					&& NULL == strstr(argv[i+1], "BMP"))
+				{
+					cerr<<"Not supported picture file type"<<endl;
+					return ERR_FILE_TYPE_NOT_SUPPORT;
+				}
+
 				strcpy_s(bmpFileName, MAX_FILE_NAME_LEN, argv[i+1]);
 			}
 			else
