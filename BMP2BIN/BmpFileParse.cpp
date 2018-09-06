@@ -150,6 +150,36 @@ int BmpFileParse::getBmpLcdBinFile(LcdType nLcdType, uint8_t* pOutputLcdBinFile,
 			}
 		}
 	}
+	else if (nLcdType == LCD_42_TWO_COLOR)
+	{
+		if (mBitMapFile.width != LCD_42_WIDTH || mBitMapFile.height != LCD_42_HEIGHT)
+		{
+			cerr<<"file width or height not support"<<endl;
+			return ERR_LCD_SIZE_ERR;
+		}
+
+		uint8_t pixelColor = 0;
+		int nPixelBitLen = 0;
+		for (int line = 0; line < mBitMapFile.height; line++)
+		{
+			for (int column = 0; column < mBitMapFile.width; column++)
+			{
+				pixelColor = mBitMapFile.imageData[line * mBitMapFile.width + column];
+				tools_setBitOfChar(pWrite, pixelColor, nPixelBitLen);
+
+				nPixelBitLen++;
+				if (nPixelBitLen >= 8)
+				{
+					pWrite++;
+					nPixelBitLen = 0;
+				}
+			}
+		}
+	}
+	else
+	{
+		return ERR_LCD_SIZE_ERR;
+	}
 
 	*nOutputFileLength = (pWrite - pOutputLcdBinFile);
 

@@ -70,6 +70,9 @@ typedef enum eLcdType
 #define LCD_29_WIDTH 296
 #define LCD_29_HEIGHT 128
 
+#define LCD_42_WIDTH 400
+#define LCD_42_HEIGHT 300
+
 class BmpFileParse
 {
 private:

@@ -22,6 +22,7 @@ using namespace std;
 #define MAX_JSON_OUTPUT_FILE_LENGTH 60000
 
 #define LCD29_CHAR_LEN 4736
+#define LCD42_CHAR_LEN 15000
 #define APP_PARA_NUMBER 5
 
 uint8_t binFileOutputChar[MAX_BIN_FILE_LENGTH] = {0};
@@ -42,6 +43,7 @@ int main(int argc, char* argv[])
 {
 	int nEslType = LCD_29_TWO_COLOR;
 	char cPassword[10] = "00000000";
+	char cEslType[15] = "";
 	char cMacAddress[20] = "A1A2A3A4A5A6";
 	uint16_t nMessageSeqID = 0;
 	uint32_t nPictureID = 0;
@@ -52,6 +54,22 @@ int main(int argc, char* argv[])
 	{
 		cout<<"Input BIN format picture file name:";
 		cin>>bmpFileName;
+
+		cout<<"Please esl type(esl29, esl42):";
+		cin>>cEslType;
+		if (strcmp(cEslType, "esl29") == 0)
+		{
+			nEslType = LCD_29_TWO_COLOR;
+		}
+		else if (strcmp(cEslType, "esl42") == 0)
+		{
+			nEslType = LCD_42_TWO_COLOR;
+		}
+		else
+		{
+			return ERR_ESL_NOT_SUPPORT;
+			cerr<<"esl type unknown"<<endl;
+		}
 
 		cout<<"Please input password:";
 		cin>>cPassword;
@@ -239,6 +257,14 @@ int bmpFile2Json(char* fileName,
 		if (nBinFileLength != LCD29_CHAR_LEN)
 		{
 			cerr<<"File size not fit for 2.9inch ESL "<<endl;
+			return ERR_TRANSLATE_FILE_FAIL;
+		}
+	}
+	else if (nEslType == LCD_42_TWO_COLOR)
+	{
+		if (nBinFileLength != LCD42_CHAR_LEN)
+		{
+			cerr<<"File size not fit for 4.2inch ESL "<<endl;
 			return ERR_TRANSLATE_FILE_FAIL;
 		}
 	}
