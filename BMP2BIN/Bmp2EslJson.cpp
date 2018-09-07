@@ -19,10 +19,11 @@ using namespace std;
 
 
 #define MAX_FILE_NAME_LEN 100
-#define MAX_BIN_FILE_LENGTH 30000
-#define MAX_JSON_OUTPUT_FILE_LENGTH 60000
+#define MAX_BIN_FILE_LENGTH 60000
+#define MAX_JSON_OUTPUT_FILE_LENGTH 100000
 
 #define LCD29_CHAR_LEN 4736
+#define LCD291_CHAR_LEN 9472
 #define LCD42_CHAR_LEN 15000
 #define APP_PARA_NUMBER 5
 
@@ -63,11 +64,15 @@ int main(int argc, char* argv[])
 			return ERR_FILE_TYPE_NOT_SUPPORT;
 		}
 
-		cout<<"Please esl type(esl29, esl42):";
+		cout<<"Please esl type(esl29,esl291,esl42):";
 		cin>>cEslType;
 		if (strcmp(cEslType, "esl29") == 0)
 		{
 			nEslType = LCD_29_TWO_COLOR;
+		}
+		else if (strcmp(cEslType, "esl291") == 0)
+		{
+			nEslType = LCD_29_THREE_COLOR;
 		}
 		else if (strcmp(cEslType, "esl42") == 0)
 		{
@@ -133,6 +138,10 @@ int main(int argc, char* argv[])
 				if (strcmp(argv[i+1], "e29") == 0)
 				{
 					nEslType = LCD_29_TWO_COLOR;
+				}
+				else if (strcmp(argv[i+1], "e291") == 0)
+				{
+					nEslType = LCD_29_THREE_COLOR;
 				}
 				else if (strcmp(argv[i+1], "e42") == 0)
 				{
@@ -235,7 +244,7 @@ int bmpFile2Json(char* fileName,
 				 uint32_t nMsgSeq, 
 				 bool bUsingZip)
 {
-	if (nEslType != LCD_29_TWO_COLOR && nEslType != LCD_42_TWO_COLOR)
+	if (nEslType != LCD_29_TWO_COLOR && nEslType != LCD_42_TWO_COLOR && nEslType != LCD_29_THREE_COLOR)
 	{
 		cerr<<"Esl not supported"<<endl;
 		return ERR_ESL_NOT_SUPPORT;
@@ -262,6 +271,7 @@ int bmpFile2Json(char* fileName,
 	}
 
 	uint32_t nBinFileLength = 0;
+	memset(binFileOutputChar, 0, MAX_BIN_FILE_LENGTH);
 	if (ERR_SUCCESS != bmpFileParse.getBmpLcdBinFile((LcdType)nEslType, binFileOutputChar, &nBinFileLength))
 	{
 		cerr<<"get bmp lcd file failed"<<endl;
@@ -272,6 +282,14 @@ int bmpFile2Json(char* fileName,
 		if (nBinFileLength != LCD29_CHAR_LEN)
 		{
 			cerr<<"File size not fit for 2.9inch ESL "<<endl;
+			return ERR_TRANSLATE_FILE_FAIL;
+		}
+	}
+	else if (nEslType == LCD_29_THREE_COLOR)
+	{
+		if (nBinFileLength != LCD291_CHAR_LEN)
+		{
+			cerr<<"File size not fit for 2.9 three color inch ESL "<<endl;
 			return ERR_TRANSLATE_FILE_FAIL;
 		}
 	}
@@ -288,7 +306,6 @@ int bmpFile2Json(char* fileName,
 		cerr<<"picture file size not support"<<endl;
 		return ERR_TRANSLATE_FILE_FAIL;
 	}
-
 
 	//encode message
 	uint16_t nBufferIdx = 0;

@@ -67,6 +67,10 @@ typedef enum eLcdType
 	LCD_42_TWO_COLOR
 }LcdType;
 
+#define LCD_WHITE_COLOR 255
+#define LCD_BLACK_COLOR 0
+#define LCD_RED_COLOR 1
+
 #define LCD_29_WIDTH 296
 #define LCD_29_HEIGHT 128
 
@@ -94,7 +98,7 @@ private:
 	bool parse8BitBmpFile(FILE* bmfp);
 
 	//½âÎö24Î»bmpÍ¼Æ¬
-	bool parse256BitBmpFile(FILE* bmfp);
+	bool parse24BitBmpFile(FILE* bmfp);
 
 	void clearResource();
 
