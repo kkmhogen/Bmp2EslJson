@@ -89,6 +89,14 @@ int BmpFileParse::loadBitmap(char *path)
 			nRet = ERR_FILE_PARSE_ERR;
 		}
 	}
+	else if(mBitMapFile.biHeader.biBitCount == 4)
+    {
+		//read file
+		if (!parse4BitBmpFile(bmfp))
+		{
+			nRet = ERR_FILE_PARSE_ERR;
+		}
+	}
 	else if(mBitMapFile.biHeader.biBitCount == 8)
     {
 		//read file
@@ -340,7 +348,113 @@ bool BmpFileParse::parse1BitBmpFile(FILE* bmfp)
 	return true;
 }
 
+bool BmpFileParse::parse4BitBmpFile(FILE* bmfp)
+{
+	int offset = 0;
+	int step = 0;
+	int width = mBitMapFile.biHeader.biWidth;
+    int height = mBitMapFile.biHeader.biHeight;
+	uint32_t channels = 0;
 
+	if (mBitMapFile.biHeader.biBitCount == 4)//16色位图
+    {
+        channels = 1;
+
+        //每行数据量是4字节整数倍
+        offset = (channels*width) % 4;
+        //计算每行需要在有效数据后填充的无意义字节数
+        if (offset != 0)
+        {
+            offset = 4 - offset;
+        }
+        mBitMapFile.channels = 1;
+		mBitMapFile.width = width;
+		mBitMapFile.height = height;
+        mBitMapFile.imageData = (unsigned char*)malloc(sizeof(unsigned char)*width*height);
+        step = channels*width; //每行宽度（字节为单位）
+
+		uint32_t nClrColorNum = 0;
+		if (mBitMapFile.biHeader.biClrUsed == 0)
+		{
+			nClrColorNum = 16;
+		}
+		else
+		{
+			nClrColorNum = mBitMapFile.biHeader.biClrUsed;
+		}
+
+		mBitMapFile.bmpColors = (RGBQUAD*)malloc(sizeof(RGBQUAD) * nClrColorNum); 
+
+		//读取调色板，4位字符调色板包含16种颜色
+		if (!fread(mBitMapFile.bmpColors, sizeof(RGBQUAD), nClrColorNum, bmfp))
+		{
+			return false;
+		}
+
+        //读每个像素的值
+		uint8_t pixVal, lowPixVal, heightPixVal;
+        for (int i = 0; i < height; i++)
+        {
+            for (int j = 0; j < width; j++)
+            {
+				if (j % 2 == 0)
+				{
+					if (!fread(&pixVal, sizeof(unsigned char), 1, bmfp))
+					{
+						return false;
+					}
+					heightPixVal = pixVal >> 4;
+					lowPixVal = pixVal & 0xF;
+
+					pixVal = heightPixVal;
+				}
+				else
+				{
+					pixVal = lowPixVal;
+				}
+
+				if (pixVal > nClrColorNum)
+				{
+					return false;
+				}
+
+				if (mBitMapFile.bmpColors[pixVal].rgbBlue == 255
+					&& mBitMapFile.bmpColors[pixVal].rgbGreen == 255
+					&& mBitMapFile.bmpColors[pixVal].rgbRed == 255)
+				{
+					pixVal = LCD_WHITE_COLOR;
+				}
+				else if (mBitMapFile.bmpColors[pixVal].rgbBlue == 0
+					&& mBitMapFile.bmpColors[pixVal].rgbGreen == 0
+					&& mBitMapFile.bmpColors[pixVal].rgbRed == 255)
+				{
+					pixVal = LCD_RED_COLOR;
+				}
+				else
+				{
+					pixVal = LCD_BLACK_COLOR;
+				}
+
+                // 坐标原点在左下角=》(height - 1 - i)*step+j，通过这个变换坐标原点变为左上角
+                mBitMapFile.imageData[(height - 1 - i)*step + j] = pixVal;
+            }
+
+            //读行末尾无意义的字节
+            if (offset != 0)
+            {
+                for (int j = 0; j < offset; j++)
+                {
+                    if (!fread(&pixVal, sizeof(unsigned char), 1, bmfp))
+					{
+						return false;
+					}
+                }
+            }
+        }
+    }
+
+	return true;
+}
 
 bool BmpFileParse::parse8BitBmpFile(FILE* bmfp)
 {
@@ -376,10 +490,10 @@ bool BmpFileParse::parse8BitBmpFile(FILE* bmfp)
 			nClrColorNum = mBitMapFile.biHeader.biClrUsed;
 		}
 
-		mBitMapFile.bmpColors = (RGBQUAD*)malloc(sizeof(RGBQUAD) * 256); 
+		mBitMapFile.bmpColors = (RGBQUAD*)malloc(sizeof(RGBQUAD) * nClrColorNum); 
 
 		//读取调色板，8位字符调色板包含256种颜色
-		if (!fread(mBitMapFile.bmpColors, sizeof(RGBQUAD), 256, bmfp))
+		if (!fread(mBitMapFile.bmpColors, sizeof(RGBQUAD), nClrColorNum, bmfp))
 		{
 			return false;
 		}

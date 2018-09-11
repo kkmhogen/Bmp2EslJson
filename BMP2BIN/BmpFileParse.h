@@ -94,6 +94,8 @@ private:
 	//解析单色图片
 	bool parse1BitBmpFile(FILE* bmfp);
 
+	bool parse4BitBmpFile(FILE* bmfp);
+
 	//解析8位bmp图片
 	bool parse8BitBmpFile(FILE* bmfp);
 
