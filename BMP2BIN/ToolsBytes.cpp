@@ -129,6 +129,17 @@ void tools_setBitOfChar(uint8_t* pOutputChar, uint8_t pixelColor, uint8_t nPixel
 	}
 }
 
+void tools_set2BitOfChar(uint8_t* pOutputChar, uint8_t pixelColor, uint8_t nPixelBitPos)
+{
+	if (pixelColor)
+	{
+		uint8_t nMask = pixelColor;
+		nMask = nMask << (6-nPixelBitPos);
+
+		*pOutputChar  = *pOutputChar | nMask;
+	}
+}
+
 uint32_t tools_H2NL(uint32_t hostValue)
 {
 	uint32_t networkValue = 0;

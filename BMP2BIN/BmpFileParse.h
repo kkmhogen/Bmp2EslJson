@@ -10,6 +10,28 @@
 #define ERR_FILE_PARSE_ERR 0x6
 
 
+#define LCD_WHITE_COLOR 255
+#define LCD_BLACK_COLOR 0
+#define LCD_RED_COLOR 1
+
+#define LCD29_CHAR_LEN 4736
+#define LCD291_CHAR_LEN 9472
+#define LCD_29_WIDTH 296
+#define LCD_29_HEIGHT 128
+
+#define LCD_21_WIDTH 212
+#define LCD_21_HEIGHT 104
+#define LCD21_CHAR_LEN 2756
+#define LCD211_CHAR_LEN 5512
+
+
+#define LCD42_CHAR_LEN 15000
+
+#define LCD_42_WIDTH 400
+#define LCD_42_HEIGHT 300
+
+
+
 #pragma  pack (push,1)
 /*bitmap file header,size:14 bytes*/
 typedef struct tagBITMAPFILEHEADER
@@ -64,18 +86,12 @@ typedef enum eLcdType
 {
 	LCD_29_TWO_COLOR,
 	LCD_29_THREE_COLOR,
-	LCD_42_TWO_COLOR
+	LCD_42_TWO_COLOR,
+	LCD_21_TWO_COLOR,
+	LCD_21_THREE_COLOR,
 }LcdType;
 
-#define LCD_WHITE_COLOR 255
-#define LCD_BLACK_COLOR 0
-#define LCD_RED_COLOR 1
 
-#define LCD_29_WIDTH 296
-#define LCD_29_HEIGHT 128
-
-#define LCD_42_WIDTH 400
-#define LCD_42_HEIGHT 300
 
 class BmpFileParse
 {
@@ -101,6 +117,8 @@ private:
 
 	//½âÎö24Î»bmpÍ¼Æ¬
 	bool parse24BitBmpFile(FILE* bmfp);
+
+	uint8_t getPixelRgbCOlor(RGBQUAD* color);
 
 	void clearResource();
 

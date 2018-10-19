@@ -132,11 +132,81 @@ int BmpFileParse::getBmpLcdBinFile(LcdType nLcdType, uint8_t* pOutputLcdBinFile,
 		return ERR_FILE_EMPTY;
 	}
 
-	if (nLcdType == LCD_29_TWO_COLOR)
+	if (nLcdType == LCD_29_THREE_COLOR || nLcdType == LCD_21_THREE_COLOR)
 	{
-		if (mBitMapFile.width != LCD_29_WIDTH || mBitMapFile.height != LCD_29_HEIGHT)
+		int width = LCD_29_WIDTH;
+		int height = LCD_29_HEIGHT;
+		if (nLcdType == LCD_21_THREE_COLOR){
+			width = LCD_21_WIDTH;
+			height = LCD_21_HEIGHT;
+		}
+		if (mBitMapFile.width != width || mBitMapFile.height != height)
 		{
-			cerr<<"file width or height not support"<<endl;
+			cerr<<"file width or height not equal lcd size, width:"<<mBitMapFile.width<<", height:"<<mBitMapFile.height<<endl;
+			return ERR_LCD_SIZE_ERR;
+		}
+
+
+		//fill black and white color
+		uint8_t pixelColor = 0;
+		int nPixelBitLen = 0;
+		for (int column = mBitMapFile.width - 1; column >= 0; column--)
+		{
+			for (int line = 0; line < mBitMapFile.height; line++)
+			{
+				pixelColor = mBitMapFile.imageData[line * mBitMapFile.width + column];
+				if (pixelColor == LCD_WHITE_COLOR)
+				{
+					tools_set2BitOfChar(pWrite, 0x1, nPixelBitLen);
+				}
+				else if (pixelColor == LCD_RED_COLOR)
+				{
+					tools_set2BitOfChar(pWrite, 0x2, nPixelBitLen);
+				}
+
+				nPixelBitLen += 2;
+				if (nPixelBitLen >= 8)
+				{
+					pWrite++;
+					nPixelBitLen = 0;
+				}
+			}
+		}
+
+		//fill red color
+		/*
+		nPixelBitLen = 0;
+		for (int column = mBitMapFile.width - 1; column >= 0; column--)
+		{
+			for (int line = 0; line < mBitMapFile.height; line++)
+			{
+				pixelColor = mBitMapFile.imageData[line * mBitMapFile.width + column];
+				if (pixelColor == LCD_RED_COLOR)
+				{
+					tools_setBitOfChar(pWrite, pixelColor, nPixelBitLen);
+				}
+
+				nPixelBitLen++;
+				if (nPixelBitLen >= 8)
+				{
+					pWrite++;
+					nPixelBitLen = 0;
+				}
+			}
+		}
+		*/
+	}
+	else if (nLcdType == LCD_29_TWO_COLOR || nLcdType == LCD_21_TWO_COLOR)
+	{
+		int width = LCD_29_WIDTH;
+		int height = LCD_29_HEIGHT;
+		if (nLcdType == LCD_21_TWO_COLOR){
+			width = LCD_21_WIDTH;
+			height = LCD_21_HEIGHT;
+		}
+		if (mBitMapFile.width != width || mBitMapFile.height != height)
+		{
+			cerr<<"file width or height not equal 2.1 inch"<<endl;
 			return ERR_LCD_SIZE_ERR;
 		}
 
@@ -160,63 +230,11 @@ int BmpFileParse::getBmpLcdBinFile(LcdType nLcdType, uint8_t* pOutputLcdBinFile,
 			}
 		}
 	}
-	else if (nLcdType == LCD_29_THREE_COLOR)
-	{
-		if (mBitMapFile.width != LCD_29_WIDTH || mBitMapFile.height != LCD_29_HEIGHT)
-		{
-			cerr<<"file width or height not support"<<endl;
-			return ERR_LCD_SIZE_ERR;
-		}
-
-
-		//fill black and white color
-		uint8_t pixelColor = 0;
-		int nPixelBitLen = 0;
-		for (int column = mBitMapFile.width - 1; column >= 0; column--)
-		{
-			for (int line = 0; line < mBitMapFile.height; line++)
-			{
-				pixelColor = mBitMapFile.imageData[line * mBitMapFile.width + column];
-				if (pixelColor == LCD_WHITE_COLOR || pixelColor == LCD_RED_COLOR)
-				{
-					tools_setBitOfChar(pWrite, pixelColor, nPixelBitLen);
-				}
-
-				nPixelBitLen++;
-				if (nPixelBitLen >= 8)
-				{
-					pWrite++;
-					nPixelBitLen = 0;
-				}
-			}
-		}
-
-		//fill red color
-		nPixelBitLen = 0;
-		for (int column = mBitMapFile.width - 1; column >= 0; column--)
-		{
-			for (int line = 0; line < mBitMapFile.height; line++)
-			{
-				pixelColor = mBitMapFile.imageData[line * mBitMapFile.width + column];
-				if (pixelColor == LCD_RED_COLOR)
-				{
-					tools_setBitOfChar(pWrite, pixelColor, nPixelBitLen);
-				}
-
-				nPixelBitLen++;
-				if (nPixelBitLen >= 8)
-				{
-					pWrite++;
-					nPixelBitLen = 0;
-				}
-			}
-		}
-	}
 	else if (nLcdType == LCD_42_TWO_COLOR)
 	{
 		if (mBitMapFile.width != LCD_42_WIDTH || mBitMapFile.height != LCD_42_HEIGHT)
 		{
-			cerr<<"file width or height not support"<<endl;
+			cerr<<"file width or height not equal 4.2inch"<<endl;
 			return ERR_LCD_SIZE_ERR;
 		}
 
@@ -418,22 +436,7 @@ bool BmpFileParse::parse4BitBmpFile(FILE* bmfp)
 					return false;
 				}
 
-				if (mBitMapFile.bmpColors[pixVal].rgbBlue == 255
-					&& mBitMapFile.bmpColors[pixVal].rgbGreen == 255
-					&& mBitMapFile.bmpColors[pixVal].rgbRed == 255)
-				{
-					pixVal = LCD_WHITE_COLOR;
-				}
-				else if (mBitMapFile.bmpColors[pixVal].rgbBlue == 0
-					&& mBitMapFile.bmpColors[pixVal].rgbGreen == 0
-					&& mBitMapFile.bmpColors[pixVal].rgbRed == 255)
-				{
-					pixVal = LCD_RED_COLOR;
-				}
-				else
-				{
-					pixVal = LCD_BLACK_COLOR;
-				}
+				pixVal = getPixelRgbCOlor(&mBitMapFile.bmpColors[pixVal]);
 
                 // 坐标原点在左下角=》(height - 1 - i)*step+j，通过这个变换坐标原点变为左上角
                 mBitMapFile.imageData[(height - 1 - i)*step + j] = pixVal;
@@ -454,6 +457,26 @@ bool BmpFileParse::parse4BitBmpFile(FILE* bmfp)
     }
 
 	return true;
+}
+
+uint8_t BmpFileParse::getPixelRgbCOlor(RGBQUAD* color)
+{
+	if (color->rgbBlue == 255
+		&& color->rgbGreen == 255
+		&& color->rgbRed == 255)
+	{
+		return LCD_WHITE_COLOR;
+	}
+	else if (color->rgbBlue < 30
+		&& color->rgbGreen < 30
+		&& color->rgbRed > 200)
+	{
+		return LCD_RED_COLOR;
+	}
+	else
+	{
+		return LCD_BLACK_COLOR;
+	}
 }
 
 bool BmpFileParse::parse8BitBmpFile(FILE* bmfp)
@@ -513,22 +536,7 @@ bool BmpFileParse::parse8BitBmpFile(FILE* bmfp)
 					return false;
 				}
 
-				if (mBitMapFile.bmpColors[pixVal].rgbBlue == 255
-					&& mBitMapFile.bmpColors[pixVal].rgbGreen == 255
-					&& mBitMapFile.bmpColors[pixVal].rgbRed == 255)
-				{
-					pixVal = LCD_WHITE_COLOR;
-				}
-				else if (mBitMapFile.bmpColors[pixVal].rgbBlue == 0
-					&& mBitMapFile.bmpColors[pixVal].rgbGreen == 0
-					&& mBitMapFile.bmpColors[pixVal].rgbRed == 255)
-				{
-					pixVal = LCD_RED_COLOR;
-				}
-				else
-				{
-					pixVal = LCD_BLACK_COLOR;
-				}
+				pixVal = getPixelRgbCOlor(&mBitMapFile.bmpColors[pixVal]);
 
                 // 坐标原点在左下角=》(height - 1 - i)*step+j，通过这个变换坐标原点变为左上角
                 mBitMapFile.imageData[(height - 1 - i)*step + j] = pixVal;
@@ -584,20 +592,11 @@ bool BmpFileParse::parse24BitBmpFile(FILE* bmfp)
             for (int j = 0; j < width; j++)
             {
                 fread(&pixVal, sizeof(unsigned char), 3, bmfp);
-				if (pixVal[0] == 255 && pixVal[1] == 255 && pixVal[2] == 255)
-				{
-					mBitMapFile.imageData[(height - 1 - i)*step + j] = LCD_WHITE_COLOR;
-				}
-				else if (pixVal[0] == 0
-					&& pixVal[1] == 0
-					&& pixVal[2] == 255)
-				{
-					mBitMapFile.imageData[(height - 1 - i)*step + j] = LCD_RED_COLOR;
-				}
-				else
-				{
-					mBitMapFile.imageData[(height - 1 - i)*step + j] = LCD_BLACK_COLOR;
-				}
+				RGBQUAD color;
+				color.rgbRed = pixVal[2];
+				color.rgbGreen = pixVal[1];
+				color.rgbBlue = pixVal[0];
+				mBitMapFile.imageData[(height - 1 - i)*step + j] = getPixelRgbCOlor(&color);
             }
             if (offset != 0)
             {

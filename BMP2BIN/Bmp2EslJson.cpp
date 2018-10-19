@@ -22,9 +22,6 @@ using namespace std;
 #define MAX_BIN_FILE_LENGTH 60000
 #define MAX_JSON_OUTPUT_FILE_LENGTH 100000
 
-#define LCD29_CHAR_LEN 4736
-#define LCD291_CHAR_LEN 9472
-#define LCD42_CHAR_LEN 15000
 #define APP_PARA_NUMBER 5
 
 uint8_t binFileOutputChar[MAX_BIN_FILE_LENGTH] = {0};
@@ -64,11 +61,19 @@ int main(int argc, char* argv[])
 			return ERR_FILE_TYPE_NOT_SUPPORT;
 		}
 
-		cout<<"Please esl type(esl29,esl291,esl42):";
+		cout<<"Please esl type(esl21,esl211,esl29,esl291,esl42):";
 		cin>>cEslType;
 		if (strcmp(cEslType, "esl29") == 0)
 		{
 			nEslType = LCD_29_TWO_COLOR;
+		}
+		else if (strcmp(cEslType, "esl21") == 0)
+		{
+			nEslType = LCD_21_TWO_COLOR;
+		}
+		else if (strcmp(cEslType, "esl211") == 0)
+		{
+			nEslType = LCD_21_THREE_COLOR;
 		}
 		else if (strcmp(cEslType, "esl291") == 0)
 		{
@@ -138,6 +143,14 @@ int main(int argc, char* argv[])
 				if (strcmp(argv[i+1], "e29") == 0)
 				{
 					nEslType = LCD_29_TWO_COLOR;
+				}
+				else if (strcmp(argv[i+1], "e21") == 0)
+				{
+					nEslType = LCD_21_TWO_COLOR;
+				}
+				else if (strcmp(argv[i+1], "e211") == 0)
+				{
+					nEslType = LCD_21_THREE_COLOR;
 				}
 				else if (strcmp(argv[i+1], "e291") == 0)
 				{
@@ -232,7 +245,7 @@ int main(int argc, char* argv[])
 
 void PintInputError()
 {
-	cerr<<"command format error, bmp2bin.exe -f BmpFileName -t EslType -p Password - m MacAddress -id PictureID -s MessageSeq -z UsingZip"<<endl;
+	cerr<<"command format error, bmp2esljson.exe -f BmpFileName -t EslType -p Password - m MacAddress -id PictureID -s MessageSeq -z UsingZip"<<endl;
 	cerr<<"Example: bmp2esljson.exe -f goods.bmp -t e29 -p 00000000 -m A1A2A3A4A5A6 -id 1478 -s 142 -z y"<<endl;
 }
 
@@ -244,7 +257,11 @@ int bmpFile2Json(char* fileName,
 				 uint32_t nMsgSeq, 
 				 bool bUsingZip)
 {
-	if (nEslType != LCD_29_TWO_COLOR && nEslType != LCD_42_TWO_COLOR && nEslType != LCD_29_THREE_COLOR)
+	if (nEslType != LCD_29_TWO_COLOR 
+		&& nEslType != LCD_42_TWO_COLOR 
+		&& nEslType != LCD_29_THREE_COLOR 
+		&& nEslType != LCD_21_TWO_COLOR
+		&& nEslType != LCD_21_THREE_COLOR)
 	{
 		cerr<<"Esl not supported"<<endl;
 		return ERR_ESL_NOT_SUPPORT;
@@ -277,11 +294,35 @@ int bmpFile2Json(char* fileName,
 		cerr<<"get bmp lcd file failed"<<endl;
 		return ERR_TRANSLATE_FILE_FAIL;
 	}
-	if (nEslType == LCD_29_TWO_COLOR)
+	if (nEslType == LCD_21_TWO_COLOR)
+	{
+		if (nBinFileLength != LCD21_CHAR_LEN)
+		{
+			cerr<<"File size not fit for 2.1inch 2 color ESL: "<<nBinFileLength<<endl;
+			return ERR_TRANSLATE_FILE_FAIL;
+		}
+	}
+	else if (nEslType == LCD_21_THREE_COLOR)
+	{
+		if (nBinFileLength != LCD211_CHAR_LEN)
+		{
+			cerr<<"File size not fit for 2.1inch 3 color ESL: "<<nBinFileLength<<endl;
+			return ERR_TRANSLATE_FILE_FAIL;
+		}
+	}
+	else if (nEslType == LCD_21_THREE_COLOR)
+	{
+		if (nBinFileLength != LCD211_CHAR_LEN)
+		{
+			cerr<<"File size not fit for 2.1inch 3 color ESL:"<<nBinFileLength<<endl;
+			return ERR_TRANSLATE_FILE_FAIL;
+		}
+	}
+	else if (nEslType == LCD_29_TWO_COLOR)
 	{
 		if (nBinFileLength != LCD29_CHAR_LEN)
 		{
-			cerr<<"File size not fit for 2.9inch ESL "<<endl;
+			cerr<<"File size not fit for 2.1 two color inch ESL:"<<nBinFileLength<<endl;
 			return ERR_TRANSLATE_FILE_FAIL;
 		}
 	}
@@ -289,7 +330,7 @@ int bmpFile2Json(char* fileName,
 	{
 		if (nBinFileLength != LCD291_CHAR_LEN)
 		{
-			cerr<<"File size not fit for 2.9 three color inch ESL "<<endl;
+			cerr<<"File size not fit for 2.9 three color inch ESL :"<<nBinFileLength<<endl;
 			return ERR_TRANSLATE_FILE_FAIL;
 		}
 	}
@@ -297,7 +338,7 @@ int bmpFile2Json(char* fileName,
 	{
 		if (nBinFileLength != LCD42_CHAR_LEN)
 		{
-			cerr<<"File size not fit for 4.2inch ESL "<<endl;
+			cerr<<"File size not fit for 4.2inch ESL:"<<nBinFileLength<<endl;
 			return ERR_TRANSLATE_FILE_FAIL;
 		}
 	}

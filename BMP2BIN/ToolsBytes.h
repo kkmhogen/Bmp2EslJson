@@ -5,7 +5,11 @@ int tools_byteToHexStrs(const uint8_t* source, char* dest, uint32_t sourceLen);
 
 void tools_getBitsOfChar(uint8_t inputChar, uint8_t* bitsOutput);
 
+//set one bit color (0: black,  1: white)
 void tools_setBitOfChar(uint8_t* pOutputChar, uint8_t pixelColor, uint8_t nPixelBitPos);
+
+//set two bit color (00: black,  01: white, 02: red)
+void tools_set2BitOfChar(uint8_t* pOutputChar, uint8_t pixelColor, uint8_t nPixelBitPos);
 
 //字节序转换，从大端到小端
 uint32_t tools_H2NL(uint32_t hostValue);
