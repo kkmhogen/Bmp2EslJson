@@ -140,6 +140,7 @@ int BmpFileParse::getBmpLcdBinFile(LcdType nLcdType, uint8_t* pOutputLcdBinFile,
 			width = LCD_21_WIDTH;
 			height = LCD_21_HEIGHT;
 		}
+
 		if (mBitMapFile.width != width || mBitMapFile.height != height)
 		{
 			cerr<<"file width or height not equal lcd size, width:"<<mBitMapFile.width<<", height:"<<mBitMapFile.height<<endl;
@@ -172,29 +173,6 @@ int BmpFileParse::getBmpLcdBinFile(LcdType nLcdType, uint8_t* pOutputLcdBinFile,
 				}
 			}
 		}
-
-		//fill red color
-		/*
-		nPixelBitLen = 0;
-		for (int column = mBitMapFile.width - 1; column >= 0; column--)
-		{
-			for (int line = 0; line < mBitMapFile.height; line++)
-			{
-				pixelColor = mBitMapFile.imageData[line * mBitMapFile.width + column];
-				if (pixelColor == LCD_RED_COLOR)
-				{
-					tools_setBitOfChar(pWrite, pixelColor, nPixelBitLen);
-				}
-
-				nPixelBitLen++;
-				if (nPixelBitLen >= 8)
-				{
-					pWrite++;
-					nPixelBitLen = 0;
-				}
-			}
-		}
-		*/
 	}
 	else if (nLcdType == LCD_29_TWO_COLOR || nLcdType == LCD_21_TWO_COLOR)
 	{
@@ -251,6 +229,40 @@ int BmpFileParse::getBmpLcdBinFile(LcdType nLcdType, uint8_t* pOutputLcdBinFile,
 				}
 
 				nPixelBitLen++;
+				if (nPixelBitLen >= 8)
+				{
+					pWrite++;
+					nPixelBitLen = 0;
+				}
+			}
+		}
+	}
+	else if (nLcdType == LCD_42_THREE_COLOR)
+	{
+		if (mBitMapFile.width != LCD_42_WIDTH || mBitMapFile.height != LCD_42_HEIGHT)
+		{
+			cerr<<"file width or height not equal 4.2inch"<<endl;
+			return ERR_LCD_SIZE_ERR;
+		}
+
+		//fill black and white color
+		uint8_t pixelColor = 0;
+		int nPixelBitLen = 0;
+		for (int line = 0; line < mBitMapFile.height; line++)
+		{
+			for (int column = 0; column < mBitMapFile.width; column++)
+			{
+				pixelColor = mBitMapFile.imageData[line * mBitMapFile.width + column];
+				if (pixelColor == LCD_WHITE_COLOR)
+				{
+					tools_set2BitOfChar(pWrite, 0x1, nPixelBitLen);
+				}
+				else if (pixelColor == LCD_RED_COLOR)
+				{
+					tools_set2BitOfChar(pWrite, 0x2, nPixelBitLen);
+				}
+
+				nPixelBitLen += 2;
 				if (nPixelBitLen >= 8)
 				{
 					pWrite++;
@@ -558,6 +570,7 @@ bool BmpFileParse::parse8BitBmpFile(FILE* bmfp)
 
 	return true;
 }
+
 
 bool BmpFileParse::parse24BitBmpFile(FILE* bmfp)
 {

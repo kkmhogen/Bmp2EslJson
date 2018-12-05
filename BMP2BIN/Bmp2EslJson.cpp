@@ -61,27 +61,31 @@ int main(int argc, char* argv[])
 			return ERR_FILE_TYPE_NOT_SUPPORT;
 		}
 
-		cout<<"Please esl type(esl21,esl211,esl29,esl291,esl42):";
+		cout<<"Please esl type(e21,e211,e29,e291,e42,e421):";
 		cin>>cEslType;
-		if (strcmp(cEslType, "esl29") == 0)
+		if (strcmp(cEslType, "e29") == 0)
 		{
 			nEslType = LCD_29_TWO_COLOR;
 		}
-		else if (strcmp(cEslType, "esl21") == 0)
+		else if (strcmp(cEslType, "e21") == 0)
 		{
 			nEslType = LCD_21_TWO_COLOR;
 		}
-		else if (strcmp(cEslType, "esl211") == 0)
+		else if (strcmp(cEslType, "e211") == 0)
 		{
 			nEslType = LCD_21_THREE_COLOR;
 		}
-		else if (strcmp(cEslType, "esl291") == 0)
+		else if (strcmp(cEslType, "e291") == 0)
 		{
 			nEslType = LCD_29_THREE_COLOR;
 		}
-		else if (strcmp(cEslType, "esl42") == 0)
+		else if (strcmp(cEslType, "e42") == 0)
 		{
 			nEslType = LCD_42_TWO_COLOR;
+		}
+		else if (strcmp(cEslType, "e421") == 0)
+		{
+			nEslType = LCD_42_THREE_COLOR;
 		}
 		else
 		{
@@ -159,6 +163,10 @@ int main(int argc, char* argv[])
 				else if (strcmp(argv[i+1], "e42") == 0)
 				{
 					nEslType = LCD_42_TWO_COLOR;
+				}
+				else if (strcmp(argv[i+1], "e421") == 0)
+				{
+					nEslType = LCD_42_THREE_COLOR;
 				}
 				else
 				{
@@ -245,7 +253,7 @@ int main(int argc, char* argv[])
 
 void PintInputError()
 {
-	cerr<<"command format error, bmp2esljson.exe -f BmpFileName -t EslType -p Password - m MacAddress -id PictureID -s MessageSeq -z UsingZip"<<endl;
+	cerr<<"command format error, bmp2esljson.exe -f BmpFileName -t EslType -p Password -m MacAddress -id PictureID -s MessageSeq -z UsingZip"<<endl;
 	cerr<<"Example: bmp2esljson.exe -f goods.bmp -t e29 -p 00000000 -m A1A2A3A4A5A6 -id 1478 -s 142 -z y"<<endl;
 }
 
@@ -259,6 +267,7 @@ int bmpFile2Json(char* fileName,
 {
 	if (nEslType != LCD_29_TWO_COLOR 
 		&& nEslType != LCD_42_TWO_COLOR 
+		&& nEslType != LCD_42_THREE_COLOR 
 		&& nEslType != LCD_29_THREE_COLOR 
 		&& nEslType != LCD_21_TWO_COLOR
 		&& nEslType != LCD_21_THREE_COLOR)
@@ -331,6 +340,14 @@ int bmpFile2Json(char* fileName,
 		if (nBinFileLength != LCD291_CHAR_LEN)
 		{
 			cerr<<"File size not fit for 2.9 three color inch ESL :"<<nBinFileLength<<endl;
+			return ERR_TRANSLATE_FILE_FAIL;
+		}
+	}
+	else if (nEslType == LCD_42_THREE_COLOR)
+	{
+		if (nBinFileLength != LCD421_CHAR_LEN)
+		{
+			cerr<<"File size not fit for 4.2 three color inch ESL :"<<nBinFileLength<<endl;
 			return ERR_TRANSLATE_FILE_FAIL;
 		}
 	}
